@@ -4,14 +4,16 @@
 *  @details  用于读取路网信息、路阻信息和 OD 数据                            *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  1.0                                                             *
-*  @date     2022/07/22                                                      *
+*  @version  1.1                                                             *
+*  @date     2022/07/23                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
 *  <Date>     | <Version> | <Author>       | <Description>                   *
 *----------------------------------------------------------------------------*
 *  2022/07/22 | 1.0       | Dong Yu        | Create File                     *
+*----------------------------------------------------------------------------*
+*  2022/07/23 | 1.1       | Dong Yu        | Update Comment                  *
 *----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
@@ -21,6 +23,10 @@
 #include<vector>
 
 
+/**
+* @brief 用于对line进行格式化
+* @param line 字符串line的引用
+*/
 void RemoveSpacese(string& line) {
 	//line.erase(0, line.find_first_not_of("	"));
 	line.erase(line.find_last_not_of("	") + 1);
@@ -30,12 +36,23 @@ void RemoveSpacese(string& line) {
 }
 
 
+/**
+* @brief 从文件file中读取一行数据
+* @param file 文件
+* @param line 字符串line的引用，用于储存读取的数据
+*/
 void ReadLine(ifstream& file, string& line) {
 	getline(file, line);
 	RemoveSpacese(line);
 }
 
 
+/**
+* @brief 分割MetaData的字符串为head和数值两部分
+* @param line 待分割的字符串
+* @param head 用于存储head部分
+* @param num 用于存储数值部分
+*/
 void SplitMetaData(string line, string& head, int& num) {
 	int data = 0, pos, len;
 	len = line.length();
@@ -45,6 +62,11 @@ void SplitMetaData(string line, string& head, int& num) {
 }
 
 
+/**
+* @brief 提取line中的数据
+* @param line 待提取的字符串
+* @return buffer 提取后的数据
+*/
 map<string, double> GetBuffer(string line) {
 	map<string, double> buffer;
 	while (line.find(" ") != string::npos)
@@ -61,6 +83,10 @@ map<string, double> GetBuffer(string line) {
 }
 
 
+/**
+* @brief 提取line中的数据，将line中信息转化为网络数据并进行储存
+* @param line 待提取的字符串
+*/
 void ReadFile::set_network(string line) {
 	int pos_last = line.find("	", 0), pos = line.find("	", pos_last + 1);
 	string ori, des;
