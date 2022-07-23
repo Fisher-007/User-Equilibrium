@@ -29,6 +29,7 @@
 #define NETWORK_H
 
 #include "node.h"
+#include "message.h"
 #include <vector>
 #include <set>
 #include <map>

@@ -16,8 +16,8 @@
 *                                                                            *
 *****************************************************************************/
 #include "read_file.h"
+#include "message.h"
 #include<fstream>
-#include<iostream>
 #include<vector>
 
 
@@ -82,30 +82,30 @@ void ReadFile::set_network(string line) {
 
 void ReadFile::CheckData(int zones, int nodes, int links, int first_thru_node, double total_flow) {
 	if (this->od_matrix.size() != zones)
-		throw "Wrong zones!";
+		ExitMessage("Wrong zones!");
 
 	if (this->all_nodes.size() != nodes)
-		throw "Wrong nodes!";
+		ExitMessage("Wrong nodes!");
 
 	int _links = 0;
 	for (auto i : this->next_nodes)
 		_links += i.second.size();
 	if (_links != links)
-		throw "Wrong links!";
+		ExitMessage("Wrong links!");
 
 	double _flow = 0.0;
 	for (auto i : this->od_matrix)
 		for (auto j : i.second)
 			_flow += j.second;
 	if ((int)_flow != (int)total_flow)
-		throw "Wrong total flow!";
+		ExitMessage("Wrong total flow!");
 
 	// first_thru_node ??
 }
 
 
 ReadFile::ReadFile(string network, string od) {
-	cout << "读取文件" << network << "和" << od << "的数据" << endl;
+	StatusMessage("读取文件: ");
 
 	ifstream network_file;
 	ifstream od_file;
@@ -119,7 +119,7 @@ ReadFile::ReadFile(string network, string od) {
 	double total_flow = 0.0;
 	
 	// 读取meta数据
-	cout << "读取meta数据...";
+	StatusMessageB("读取meta数据");
 	ReadLine(network_file, line);
 	while (line.compare("<END OF METADATA>") != 0) {
 		if (line.find("~") != string::npos) {
@@ -150,7 +150,7 @@ ReadFile::ReadFile(string network, string od) {
 			SplitMetaData(line, head, num);
 			if (head == "<NUMBER OF ZONES>") {
 				if (zones != num)
-					throw "Wrong in file!";
+					ExitMessage("Wrong in file!");
 			}
 			else if (head == "<TOTAL OD FLOW>") {
 				total_flow = num;
@@ -159,21 +159,21 @@ ReadFile::ReadFile(string network, string od) {
 		}
 	}
 	if (zones * nodes * links * first_thru_node * total_flow == 0)
-		throw "Wrong matadata input!";
-	cout << "Succeed!" << endl;
+		ExitMessage("Wrong matadata input!");
+	StatusMessageA();
 
 	// 读取网络数据
-	cout << "读取网络数据...";
+	StatusMessageB("读取网络数据");
 	while (!network_file.eof()) {
 		ReadLine(network_file, line);
 		if (line.empty() || line.find("~") != string::npos)
 			continue;
 		set_network(line);
 	}
-	cout << "Succeed!" << endl;
+	StatusMessageA();
 
 	// 读取OD数据
-	cout << "读取OD数据...";
+	StatusMessageB("读取OD数据");
 	int origin = 0;
 	map<string, double> buffer;
 	while (!od_file.eof()) {
@@ -188,13 +188,13 @@ ReadFile::ReadFile(string network, string od) {
 		for (auto des : buffer)
 			this->od_matrix[to_string(origin)][des.first] = des.second;
 	}
-	cout << "Succeed!" << endl;
+	StatusMessageA();
 
 	network_file.close();
 	od_file.close();
 
 	CheckData(zones, nodes, links, first_thru_node, total_flow);
-	cout << "文件读取成功！" << endl;
+	StatusMessage("文件读取成功！");
 }
 
 

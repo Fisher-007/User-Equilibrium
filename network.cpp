@@ -125,7 +125,7 @@ void Network::Init(string network, string od, string criteria) {
 
     }
     else {
-        throw "Wrong criteria input!";
+        ExitMessage("Wrong criteria input!");
     }
 }
 
