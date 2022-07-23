@@ -26,12 +26,15 @@
 *----------------------------------------------------------------------------*
 *  2022/07/03 | 3.0       | Dong Yu        | Test on Sioux Falls Network(T4) *
 *----------------------------------------------------------------------------*
+*  2022/07/22 | 4.0       | Dong Yu        | Test on Anaheim Network(T5)     *
+*----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
 
 #include "network.h"
 #include "shortest_path.h"
 #include "user_equilibrium_solver.h"
+#include "read_file.h"
 #include <iostream>
 using namespace std;
 
@@ -93,23 +96,45 @@ int main() {
 	// 1->4->5£ºÁ÷Á¿ 1981£»»¨·Ñ 3188.15
 
     // Sioux Falls ÍøÂç²âÊÔ
-	Network big_network = Network();
-	string network = "./data/tri_link.csv", od = "./data/tri_od.csv";
-	big_network.Init(network, od);
-	FrankWolfe(big_network, "obj");
-	cout << "------------------restult------------------" << endl;
-	map<string, map<string, double>> flow = big_network.get_flow();
-	for (auto i : flow)
-		for (auto j : i.second)
-			if (j.second != 0)
-				cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
-	Node node;
-	for (auto i : big_network.get_all_nodes()) {
-		node = big_network.get_node(i);
-		for (auto j : node.get_next())
-			cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
-	}
+	//Network big_network = Network();
+	//string network = "./data/tri_link.csv", od = "./data/tri_od.csv";
+	//big_network.Init(network, od);
+	//FrankWolfe(big_network, "obj");
+	//cout << "------------------restult------------------" << endl;
+	//map<string, map<string, double>> flow = big_network.get_flow();
+	//for (auto i : flow)
+	//	for (auto j : i.second)
+	//		if (j.second != 0)
+	//			cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
+	//Node node;
+	//for (auto i : big_network.get_all_nodes()) {
+	//	node = big_network.get_node(i);
+	//	for (auto j : node.get_next())
+	//		cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
+	//}
 
 	// ²âÊÔ 4£º
 
+	// ²âÊÔread_fileÀà
+	ReadFile file("./data/Anaheim_net.tntp", "./data/Anaheim_trips.tntp");
+
+	// Anaheim ÍøÂç²âÊÔ
+	//Network big_network = Network();
+	//string network = "./data/Anaheim_net.tntp", od = "./data/Anaheim_trips.tntp";
+	//big_network.Init(network, od, "tntp");
+	//FrankWolfe(big_network, "obj");
+	//cout << "------------------restult------------------" << endl;
+	//map<string, map<string, double>> flow = big_network.get_flow();
+	//for (auto i : flow)
+	//	for (auto j : i.second)
+	//		if (j.second != 0)
+	//			cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
+	//Node node;
+	//for (auto i : big_network.get_all_nodes()) {
+	//	node = big_network.get_node(i);
+	//	for (auto j : node.get_next())
+	//		cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
+	//}
+
+	// ²âÊÔ 5£º
 }

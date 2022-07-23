@@ -20,6 +20,8 @@
 *----------------------------------------------------------------------------*
 *  2022/07/02 | 2.2       | Dong Yu        | Change Flow Type to Double      *
 *----------------------------------------------------------------------------*
+*  2022/07/22 | 2.4       | Dong Yu        | Add tntp file read              *
+*----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
 #pragma once
@@ -47,7 +49,7 @@ class Network{
     public:
         Network(int max_nodes = 1000);
         // 初始化网络（节点、边、performance-function、OD）
-        void Init(string network = "./data/tri_link.csv", string od = "./data/tri_od.csv");
+        void Init(string network = "./data/tri_link.csv", string od = "./data/tri_od.csv", string criteria = "simplified");
         // 新增一个节点
         int AddNode(string id);
         // 获取网络中所有节点的 id 集合

@@ -22,6 +22,8 @@
 *----------------------------------------------------------------------------*
 *  2022/07/02 | 2.3       | Dong Yu        | Change Performance-function     *
 *----------------------------------------------------------------------------*
+*  2022/07/22 | 2.4       | Dong Yu        | Add tntp file read              *
+*----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
 
@@ -52,66 +54,78 @@ int Network::AddNode(string id) {
 
 /**
 * @brief 初始化网络（节点、边、performance-function、OD）
-* @param network 存储网络节点、边、performance-function 文件（.csv）的地址，缺省默认为 ./data/tri_link.csv
-* @param od 存储网络 OD 矩阵文件（.csv）的地址，缺省默认为 ./data/tri_od.csv
-* @note 上述两个文件，格式有固定要求
-       - network:
+* @param network 存储网络节点、边、performance-function 文件的地址，缺省默认为 ./data/tri_link.csv
+* @param od 存储网络 OD 矩阵文件的地址，缺省默认为 ./data/tri_od.csv
+* @note 上述两个文件，有两种固定的格式要求
+       格式 1（simplified）
+       - network（.csv）:
                 node_id_1 | node_id_2 | t0     | c     
                 string    | string    | double | double
-       - od（需要记录网络中所有点到所有点的od，没有的记 0 ）:
+       - od（.csv; 需要记录网络中所有点到所有点的od，没有的记 0 ）:
                 origin | destination | flow
                 string | string      | double
-* @see performance-function: t0 * (1 + alpha * (v / c) ^ beta)
+       格式 2（tntp）
+* @see performance-function: 
+       格式 1 ：t0 * (1 + alpha * (v / c) ^ beta)
+       格式 2 ：BPR函数
 */
-void Network::Init(string network, string od) {
-    string line;
-    ifstream network_data(network);
-    // 读取 network 文件
-    while (getline(network_data, line))
-    {
-        istringstream sin(line);
-        // string id_1, id_2, c, b, a;
-        string id_1, id_2, t0, c;
+void Network::Init(string network, string od, string criteria) {
+    if (criteria == "simplified") {
+        string line;
+        ifstream network_data(network);
+        // 读取 network 文件
+        while (getline(network_data, line))
+        {
+            istringstream sin(line);
+            // string id_1, id_2, c, b, a;
+            string id_1, id_2, t0, c;
 
-        getline(sin, id_1, ',');
-        this->all_nodes.insert(id_1);
-        AddNode(id_1);
+            getline(sin, id_1, ',');
+            this->all_nodes.insert(id_1);
+            AddNode(id_1);
 
-        getline(sin, id_2, ',');
-        this->all_nodes.insert(id_2);
-        AddNode(id_2);
+            getline(sin, id_2, ',');
+            this->all_nodes.insert(id_2);
+            AddNode(id_2);
 
-        //getline(sin, c, ',');
-        //getline(sin, b, ',');
-        //getline(sin, a, ',');
-        //this->nodes[id_1].UpdateNext(id_2, stod(c), stod(b), stod(a));
-        getline(sin, t0, ',');
-        getline(sin, c, ',');
-        this->nodes[id_1].UpdateNext(id_2, stod(t0), stod(c) * 2000);
+            //getline(sin, c, ',');
+            //getline(sin, b, ',');
+            //getline(sin, a, ',');
+            //this->nodes[id_1].UpdateNext(id_2, stod(c), stod(b), stod(a));
+            getline(sin, t0, ',');
+            getline(sin, c, ',');
+            this->nodes[id_1].UpdateNext(id_2, stod(t0), stod(c) * 2000);
+        }
+
+        ifstream od_data(od);
+        // 读取 OD 文件
+        while (getline(od_data, line))
+        {
+            istringstream sin(line);
+            string origin, destination, flow;
+
+            getline(sin, origin, ',');
+            getline(sin, destination, ',');
+            getline(sin, flow, ',');
+            this->od_matrix[origin][destination] = stod(flow);
+        }
+
+        set<string> next;
+        // 初始化 link 流量和当前的花费
+        for (set<string>::iterator id_1 = this->all_nodes.begin(); id_1 != this->all_nodes.end(); id_1++) {
+            for (set<string>::iterator id_2 = this->all_nodes.begin(); id_2 != this->all_nodes.end(); id_2++)
+                this->flow[*id_1][*id_2] = 0;
+
+            next = this->nodes[*id_1].get_next();
+            for (set<string>::iterator id = next.begin(); id != next.end(); id++)
+                this->nodes[*id_1].UpdateCost(*id, 0);
+        }
     }
+    else if (criteria == "tntp") {
 
-    ifstream od_data(od);
-    // 读取 OD 文件
-    while (getline(od_data, line))
-    {
-        istringstream sin(line);
-        string origin, destination, flow;
-
-        getline(sin, origin, ',');
-        getline(sin, destination, ',');
-        getline(sin, flow, ',');
-        this->od_matrix[origin][destination] = stod(flow);
     }
-
-    set<string> next;
-    // 初始化 link 流量和当前的花费
-    for (set<string>::iterator id_1 = this->all_nodes.begin(); id_1 != this->all_nodes.end(); id_1++) {
-        for (set<string>::iterator id_2 = this->all_nodes.begin(); id_2 != this->all_nodes.end(); id_2++)
-            this->flow[*id_1][*id_2] = 0;
-
-        next = this->nodes[*id_1].get_next();
-        for (set<string>::iterator id = next.begin(); id != next.end(); id++)
-            this->nodes[*id_1].UpdateCost(*id, 0);
+    else {
+        throw "Wrong criteria input!";
     }
 }
 
