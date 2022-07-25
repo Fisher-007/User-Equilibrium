@@ -62,21 +62,21 @@ int main() {
 	//cout << flow["1"]["3"] << endl;
 
 	// 小网络测试结果正确性
-	Network small_network = Network();
-	string network = "./data/tri_link_test3.csv", od = "./data/tri_od_test3.csv";
-	small_network.Init(network, od);
-	FrankWolfe(small_network);
-	cout << "------------------restult------------------" << endl;
-	map<string, map<string, double>> flow = small_network.get_flow();
-	for (auto i : flow)
-		for (auto j : i.second)
-			cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
-	Node node;
-	for (auto i : small_network.get_all_nodes()) {
-		node = small_network.get_node(i);
-		for (auto j : node.get_next())
-			cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
-	}
+	//Network small_network = Network();
+	//string network = "./data/tri_link_test3.csv", od = "./data/tri_od_test3.csv";
+	//small_network.Init(network, od);
+	//FrankWolfe(small_network, "obj");
+	//cout << "------------------restult------------------" << endl;
+	//map<string, map<string, double>> flow = small_network.get_flow();
+	//for (auto i : flow)
+	//	for (auto j : i.second)
+	//		cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
+	//Node node;
+	//for (auto i : small_network.get_all_nodes()) {
+	//	node = small_network.get_node(i);
+	//	for (auto j : node.get_next())
+	//		cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
+	//}
 
 	// 测试 1：网络共一对OD、三条路径，测试结果如下：
 	// 1->2->5：流量 1947；花费 1098.8
@@ -103,24 +103,26 @@ int main() {
 	// 1->4->5：流量 1688；花费 569.055
 
     // Sioux Falls 网络测试
-	//Network big_network = Network();
-	//string network = "./data/tri_link.csv", od = "./data/tri_od.csv";
-	//big_network.Init(network, od);
-	//FrankWolfe(big_network, "obj");
-	//cout << "------------------restult------------------" << endl;
-	//map<string, map<string, double>> flow = big_network.get_flow();
-	//for (auto i : flow)
-	//	for (auto j : i.second)
-	//		if (j.second != 0)
-	//			cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
-	//Node node;
-	//for (auto i : big_network.get_all_nodes()) {
-	//	node = big_network.get_node(i);
-	//	for (auto j : node.get_next())
-	//		cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
-	//}
+	Network big_network = Network();
+	string network = "./data/tri_link.csv", od = "./data/tri_od.csv";
+	big_network.Init(network, od);
+	FrankWolfe(big_network, "obj");
+	cout << "------------------restult------------------" << endl;
+	map<string, map<string, double>> flow = big_network.get_flow();
+	for (auto i : flow)
+		for (auto j : i.second)
+			if (j.second != 0)
+				cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
+	Node node;
+	for (auto i : big_network.get_all_nodes()) {
+		node = big_network.get_node(i);
+		for (auto j : node.get_next())
+			cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
+	}
 
 	// 测试 4：
+	// 原代码没有问题，无法收敛原因在于收敛条件过于苛刻
+	// 另一个原因在于，在基于目标函数obj的收敛判断中，目标函数有误，错将cost当作flow
 
 	// 测试read_file类
 	//ReadFile file("./data/Anaheim_net.tntp", "./data/Anaheim_trips.tntp");

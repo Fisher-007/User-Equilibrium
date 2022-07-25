@@ -25,6 +25,8 @@
 *----------------------------------------------------------------------------*
 *  2022/07/25 | 1.6       | Dong Yu        | Modify flow Initialize method   *
 *----------------------------------------------------------------------------*
+*  2022/07/25 | 1.7       | Dong Yu        | Modify the obj. calculation     *
+*----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
 
@@ -70,10 +72,10 @@ map<string, map<string, double>> AllOrNothingAssignment(const Network& network) 
 		}
 	}
 
-	cout << "------------------All or Nothing------------------" << endl;
-	for (auto i : flow)
-		for (auto j : i.second)
-			cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
+	//cout << "------------------All or Nothing------------------" << endl;
+	//for (auto i : flow)
+	//	for (auto j : i.second)
+	//		cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
 			//if (j.second != 0)
 			//    cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
 
@@ -121,7 +123,7 @@ map<string, map<string, double>> NetworkLoading(Network& network) {
 
 	// 二分法计算最优步长 \alpha
 	double alpha = BisectionMethod(all_nodes, cost, xn, yn);
-	cout << "------------------alpha = " << alpha << "------------------" << endl;
+	//cout << "------------------alpha = " << alpha << "------------------" << endl;
 
 	// 计算网络更新后的流量
 	for (auto i : xn)
@@ -171,8 +173,8 @@ bool IsConverge(set<string> all_nodes, map<string, map<string, double>> flow, ma
 		  - 0 不收敛
 */
 bool IsConverge(double obj1, double obj2) {
-	cout << "------------------delta_obj=" << obj1 - obj2 << "------------------" << endl;
-	if (abs(obj1 - obj2) < 0.1)
+	cout << "------------------delta_obj=" << (obj1 - obj2) / obj1 << "------------------" << endl;
+	if (abs(obj1 - obj2) / obj1 < 0.001)
 		return 1;
 	else
 		return 0;
@@ -185,22 +187,23 @@ bool IsConverge(double obj1, double obj2) {
 * @param delta 积分步长
 * @return 目标函数值
 */
-double CalculateObj(Network network, double delta = 1e1) {
+double CalculateObj(Network network, double delta = 1) {
 	set<string> next, all_nodes;
 	map<string, map<string, double>> parm;
-	double obj = 0, flow1, flow2;
+	double obj = 0, flow, f1, f2;
 	int n;
 	all_nodes = network.get_all_nodes();
 	for (set<string>::iterator id_1 = all_nodes.begin(); id_1 != all_nodes.end(); id_1++) {
 		next = network.get_node(*id_1).get_next();
 		for (set<string>::iterator id_2 = next.begin(); id_2 != next.end(); id_2++) {
-			n = (int)(network.get_node(*id_1).get_cost(*id_2) / delta);
-			// cout << n << endl;
+			n = (int)(network.get_flow()[*id_1][*id_2] / delta);
 			parm = network.get_node(*id_1).get_cost_parm();
+			f1 = parm[*id_2]["t0"] * (1 + ALPHA * pow(0 / parm[*id_2]["c"], BETA));
 			for (int i = 1; i < n; i++) {
-				flow1 = delta * (i - 1);
-				flow2 = delta * i;
-				obj += (parm[*id_2]["t0"] * (1 + ALPHA * pow(flow1 / parm[*id_2]["c"], BETA)) + parm[*id_2]["t0"] * (1 + ALPHA * pow(flow2 / parm[*id_2]["c"], BETA))) / 2 * delta;
+				flow = delta * i;
+				f2 = parm[*id_2]["t0"] * (1 + ALPHA * pow(flow / parm[*id_2]["c"], BETA));
+				obj += (f1 + f2) / 2 * delta;
+				f1 = f2;
 			}
 		}
 	}
@@ -255,10 +258,10 @@ void FrankWolfe(Network& network, string criteria) {
 			obj1 = obj2;
 			flow = network.get_flow(); // 记录上一轮迭代结果
 
-			cout << "------------------flow------------------" << endl;
-			for (auto i : flow)
-				for (auto j : i.second)
-					cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
+			//cout << "------------------flow------------------" << endl;
+			//for (auto i : flow)
+			//	for (auto j : i.second)
+			//		cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
 					//if (j.second != 0)
 					//	cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
 			Node node;
