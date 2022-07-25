@@ -5,7 +5,7 @@
 *            描述网络的数据需要从csv文件中读取，即需要先生成指定格式的csv文件*
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  2.5                                                             *
+*  @version  3.0                                                             *
 *  @date     2022/07/25                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
@@ -22,9 +22,9 @@
 *----------------------------------------------------------------------------*
 *  2022/07/02 | 2.3       | Dong Yu        | Change Performance-function     *
 *----------------------------------------------------------------------------*
-*  2022/07/22 | 2.4       | Dong Yu        | Add tntp file read              *
+*  2022/07/25 | 2.4       | Dong Yu        | Modify flow Initialize method   *
 *----------------------------------------------------------------------------*
-*  2022/07/25 | 2.5       | Dong Yu        | Modify flow Initialize method   *
+*  2022/07/25 | 3.0       | Dong Yu        | Add tntp file read              *
 *----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
@@ -112,20 +112,39 @@ void Network::Init(string network, string od, string criteria) {
             this->od_matrix[origin][destination] = stod(flow);
         }
 
-        set<string> next;
         // 初始化 link 流量和当前的花费
+        set<string> next;
         for (set<string>::iterator id_1 = this->all_nodes.begin(); id_1 != this->all_nodes.end(); id_1++) {
             next = this->nodes[*id_1].get_next();
 
-            for (set<string>::iterator id_2 = next.begin(); id_2 != next.end(); id_2++)
+            for (set<string>::iterator id_2 = next.begin(); id_2 != next.end(); id_2++) {
                 this->flow[*id_1][*id_2] = 0;
-
-            for (set<string>::iterator id = next.begin(); id != next.end(); id++)
-                this->nodes[*id_1].UpdateCost(*id, 0);
+                this->nodes[*id_1].UpdateCost(*id_2, 0);
+            }
         }
     }
     else if (criteria == "tntp") {
+        ReadFile file("./data/Anaheim_net.tntp", "./data/Anaheim_trips.tntp");
+        this->all_nodes = file.get_all_nodes();
+        this->od_matrix = file.get_od_matrix();
 
+        map<string, set<string>> next_nodes = file.get_next_nodes();
+        map<string, map<string, map<string, double>>> cost_parm = file.get_cost_parm();
+        for (auto id_1 : next_nodes)
+            for (auto id_2 : id_1.second) {
+                this->nodes[id_1.first].UpdateNext(id_2, cost_parm[id_1.first][id_2]);
+            }
+
+        // 初始化 link 流量和当前的花费
+        set<string> next;
+        for (set<string>::iterator id_1 = this->all_nodes.begin(); id_1 != this->all_nodes.end(); id_1++) {
+            next = this->nodes[*id_1].get_next();
+
+            for (set<string>::iterator id_2 = next.begin(); id_2 != next.end(); id_2++) {
+                this->flow[*id_1][*id_2] = 0;
+                this->nodes[*id_1].UpdateCost(*id_2, 0);
+            }
+        }
     }
     else {
         ExitMessage("Wrong criteria input!");

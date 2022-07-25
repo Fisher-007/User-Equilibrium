@@ -4,8 +4,8 @@
 *  @details  目前仅实现了用于 Frank Wolfe 算法的二分法                       *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  1.1                                                             *
-*  @date     2022/06/05                                                      *
+*  @version  1.5                                                             *
+*  @date     2022/07/25                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -19,6 +19,8 @@
 *----------------------------------------------------------------------------*
 *  2022/07/03 | 1.4       | Dong Yu        | Change Step Type to Double      *
 *----------------------------------------------------------------------------*
+*  2022/07/25 | 1.5       | Dong Yu        | Modify cost handling method     *
+*----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
 
@@ -26,14 +28,15 @@
 #ifndef ONE_DIMENSIONAL_MINIMIZATION
 #define ONE_DIMENSIONAL_MINIMIZATION
 
+#include "network.h"
 #include <vector>
 #include <set>
 #include <map>
 #include <string>
 using namespace std;
 
-// 二分法
-double BisectionMethod(set<string> all_nodes, map<string, map<string, map<string, double>>> cost, map<string, map<string, double>> xn, map<string, map<string, double>> yn);
+// 二分法(需传参network，可改进)
+double BisectionMethod(Network network, map<string, map<string, double>> xn, map<string, map<string, double>> yn);
 
 // 还可以继续完善其他的方法：
 //float GoldenSectionMethod();

@@ -4,7 +4,7 @@
 *  @details  目前仅实现了 Frank Wolfe 算法求解                               *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  1.6                                                             *
+*  @version  2.0                                                             *
 *  @date     2022/07/25                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
@@ -27,9 +27,16 @@
 *----------------------------------------------------------------------------*
 *  2022/07/25 | 1.7       | Dong Yu        | Modify the obj. calculation     *
 *----------------------------------------------------------------------------*
+*  2022/07/25 | 1.8       | Dong Yu        | Modify a convergence judgment   *
+*----------------------------------------------------------------------------*
+*  2022/07/25 | 1.9       | Dong Yu        | Modify cost handling method     *
+*----------------------------------------------------------------------------*
+*  2022/07/25 | 2.0       | Dong Yu        | Modify the message output method*
+*----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
 
+#include "message.h"
 #include "user_equilibrium_solver.h"
 #include "one_dimensional_minimization.h"
 #include "shortest_path.h"
@@ -122,8 +129,7 @@ map<string, map<string, double>> NetworkLoading(Network& network) {
 	yn = AllOrNothingAssignment(network);
 
 	// 二分法计算最优步长 \alpha
-	double alpha = BisectionMethod(all_nodes, cost, xn, yn);
-	//cout << "------------------alpha = " << alpha << "------------------" << endl;
+	double alpha = BisectionMethod(network, xn, yn);
 
 	// 计算网络更新后的流量
 	for (auto i : xn)
@@ -172,9 +178,8 @@ bool IsConverge(set<string> all_nodes, map<string, map<string, double>> flow, ma
 		  - 1 收敛
 		  - 0 不收敛
 */
-bool IsConverge(double obj1, double obj2) {
-	cout << "------------------delta_obj=" << (obj1 - obj2) / obj1 << "------------------" << endl;
-	if (abs(obj1 - obj2) / obj1 < 0.001)
+bool IsConverge(long double obj1, long double obj2) {
+	if (abs(obj1 - obj2) / obj1 < 0.0001)
 		return 1;
 	else
 		return 0;
@@ -187,10 +192,11 @@ bool IsConverge(double obj1, double obj2) {
 * @param delta 积分步长
 * @return 目标函数值
 */
-double CalculateObj(Network network, double delta = 1) {
+long double CalculateObj(Network network, double delta = 10) {
 	set<string> next, all_nodes;
 	map<string, map<string, double>> parm;
-	double obj = 0, flow, f1, f2;
+	long double obj = 0;
+	double flow, f1, f2;
 	int n;
 	all_nodes = network.get_all_nodes();
 	for (set<string>::iterator id_1 = all_nodes.begin(); id_1 != all_nodes.end(); id_1++) {
@@ -198,10 +204,10 @@ double CalculateObj(Network network, double delta = 1) {
 		for (set<string>::iterator id_2 = next.begin(); id_2 != next.end(); id_2++) {
 			n = (int)(network.get_flow()[*id_1][*id_2] / delta);
 			parm = network.get_node(*id_1).get_cost_parm();
-			f1 = parm[*id_2]["t0"] * (1 + ALPHA * pow(0 / parm[*id_2]["c"], BETA));
+			f1 = network.get_node(*id_1).CalculateCost(*id_2, 0);
 			for (int i = 1; i < n; i++) {
 				flow = delta * i;
-				f2 = parm[*id_2]["t0"] * (1 + ALPHA * pow(flow / parm[*id_2]["c"], BETA));
+				f2 = network.get_node(*id_1).CalculateCost(*id_2, flow);
 				obj += (f1 + f2) / 2 * delta;
 				f1 = f2;
 			}
@@ -220,63 +226,50 @@ void FrankWolfe(Network& network, string criteria) {
 	if (criteria == "flow") {
 		map<string, map<string, double>> flow, new_flow;
 		int i = 0;
-		cout << "------------------Initialization------------------" << endl;
-		Initialization(network); // 初始化
+
+		StatusMessageB("Initialization");
+		Initialization(network);           // 初始化
+		StatusMessageA();
+
 		do {
+			StatusIter(++i);
+
+			StatusMessageB("Update");
 			Update(network); // 更新花费
+
 			flow = network.get_flow(); // 记录上一轮迭代结果
-
-			cout << "------------------flow------------------" << endl;
-			for (auto i : flow)
-				for (auto j : i.second)
-					cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
-					//if (j.second != 0)
-					//	cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
-			Node node;
-			cout << "------------------cost------------------" << endl;
-			for (auto i : network.get_all_nodes()) {
-				node = network.get_node(i);
-				for (auto j : node.get_next())
-					cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
-			}
-			cout << "------------------iter = " << ++i << "------------------" << endl;
-
+			StatusMessageB("Network Loading");
 			new_flow = NetworkLoading(network); // 重新分配并记录
+
+			StatusMessageA();
+
 		} while (!IsConverge(network.get_all_nodes(), flow, new_flow)); // 收敛判断
 	}
 	else if (criteria == "obj") { // 需要多方面权衡（计算速度，结果准确性，目标函数值收敛性）
 		map<string, map<string, double>> flow, new_flow;
-		double obj1, obj2;
+		long double obj1, obj2;
 		// Network pre_network;
 		int i = 0;
-		cout << "------------------Initialization------------------" << endl;
-		Initialization(network); // 初始化
+
+		StatusMessageB("Initialization");
+		Initialization(network);           // 初始化
+		StatusMessageA();
+
 		Update(network); // 更新花费
 		obj2 = CalculateObj(network);
 
 		do {
+			StatusIter(++i);
 			obj1 = obj2;
-			flow = network.get_flow(); // 记录上一轮迭代结果
 
-			//cout << "------------------flow------------------" << endl;
-			//for (auto i : flow)
-			//	for (auto j : i.second)
-			//		cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
-					//if (j.second != 0)
-					//	cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
-			Node node;
-			//cout << "------------------cost------------------" << endl;
-			//for (auto i : network.get_all_nodes()) {
-			//	node = network.get_node(i);
-			//	for (auto j : node.get_next())
-			//		cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
-			//}
-			cout << "------------------iter = " << ++i << "---obj = " << obj1 << "------------------" << endl;
+			StatusMessageB("Network Loading");
+			NetworkLoading(network);        // 重新分配并记录
 
-			new_flow = NetworkLoading(network); // 重新分配并记录
+			StatusMessageB("Update");
+			Update(network);                // 更新花费
 
-			Update(network); // 更新花费
 			obj2 = CalculateObj(network);
+			StatusMessageA("delta = " + to_string((obj1 - obj2) / obj1));
 
 		} while (!IsConverge(obj1, obj2)); // 收敛判断
 	}
