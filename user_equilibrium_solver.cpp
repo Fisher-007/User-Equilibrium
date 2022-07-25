@@ -4,8 +4,8 @@
 *  @details  目前仅实现了 Frank Wolfe 算法求解                               *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  1.1                                                             *
-*  @date     2022/06/05                                                      *
+*  @version  1.6                                                             *
+*  @date     2022/07/25                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -22,6 +22,8 @@
 *  2022/07/03 | 1.4       | Dong Yu        | Change Step Type to Double      *
 *----------------------------------------------------------------------------*
 *  2022/07/04 | 1.5       | Dong Yu        | Add a New Convergence Judgment  *
+*----------------------------------------------------------------------------*
+*  2022/07/25 | 1.6       | Dong Yu        | Modify flow Initialize method   *
 *----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
@@ -42,41 +44,38 @@
 map<string, map<string, double>> AllOrNothingAssignment(const Network& network) {
 
 	map<string, map<string, double>> od_matrix = network.get_od_matrix();
-	map<string, map<string, double>> flow;
-	//map<string, map<string, double>> flow = network.get_flow();
+	map<string, map<string, double>> flow = network.get_flow();
 	map<string, vector<string>> shortest_path;
 	vector<string> path;
 	set<string> all_nodes = network.get_all_nodes();
 
 	// 初始化 link 流量为 0
-	for (set<string>::iterator id_1 = all_nodes.begin(); id_1 != all_nodes.end(); id_1++)
-		for (set<string>::iterator id_2 = all_nodes.begin(); id_2 != all_nodes.end(); id_2++)
-			flow[*id_1][*id_2] = 0;
-	//for (auto i : flow)
-	//	for (auto j : i.second)
-	//		j.second = 0;
+	for (auto i : flow)
+		for (auto j : i.second)
+			flow[i.first][j.first] = 0;
 
 	// 流量分配
-	for (set<string>::iterator origin = all_nodes.begin(); origin != all_nodes.end(); origin++) {
+	for (auto origin : od_matrix) {
 
 		// 计算 origin 到其他 destination 的最短路（link序列）
-		shortest_path = GetShortestPath(*origin, network);
+		shortest_path = GetShortestPath(origin.first, network);
 
-		for (set<string>::iterator destination = all_nodes.begin(); destination != all_nodes.end(); destination++) {
-			path = shortest_path[*destination];
+		for (auto destination : origin.second) {
+			path = shortest_path[destination.first];
 
 			// 当序列长度不为 1（origin本身也在序列中）时，将 origin-destination 的流量全部加载到 path 中的每一条 link 上
 			if (path.size() > 1)
 				for (int i = 1; i < path.size(); i++)
-					flow[path[i]][path[i - 1]] += od_matrix[*origin][*destination];
+					flow[path[i]][path[i - 1]] += od_matrix[origin.first][destination.first];
 		}
 	}
 
 	cout << "------------------All or Nothing------------------" << endl;
 	for (auto i : flow)
 		for (auto j : i.second)
-			if (j.second != 0)
-			    cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
+			cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
+			//if (j.second != 0)
+			//    cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
 
 	return flow;
 }
@@ -111,6 +110,7 @@ map<string, map<string, double>> NetworkLoading(Network& network) {
 	map<string, map<string, double>> new_flow, xn, yn;
 	set<string> all_nodes = network.get_all_nodes();
 	map<string, map<string, map<string, double>>> cost;
+	map<string, map<string, double>> od_matrix = network.get_od_matrix();
 
 	// 记录网络中所有 link 的 performance function
 	for (set<string>::iterator id = all_nodes.begin(); id != all_nodes.end(); id++)
@@ -124,9 +124,9 @@ map<string, map<string, double>> NetworkLoading(Network& network) {
 	cout << "------------------alpha = " << alpha << "------------------" << endl;
 
 	// 计算网络更新后的流量
-	for (set<string>::iterator id_1 = all_nodes.begin(); id_1 != all_nodes.end(); id_1++)
-		for (set<string>::iterator id_2 = all_nodes.begin(); id_2 != all_nodes.end(); id_2++)
-			new_flow[*id_1][*id_2] = (double)(xn[*id_1][*id_2] + alpha * (yn[*id_1][*id_2] - xn[*id_1][*id_2]));
+	for (auto i : xn)
+		for (auto j : i.second)
+			new_flow[i.first][j.first] = (double)(xn[i.first][j.first] + alpha * (yn[i.first][j.first] - xn[i.first][j.first]));
 	
 	// 更新网络流量并返回
 	network.set_flow(new_flow);
@@ -148,10 +148,10 @@ bool IsConverge(set<string> all_nodes, map<string, map<string, double>> flow, ma
 	int count = 0;
 
 	// 计算两次迭代结果的总变化量
-	for (set<string>::iterator id_1 = all_nodes.begin(); id_1 != all_nodes.end(); id_1++)
-		for (set<string>::iterator id_2 = all_nodes.begin(); id_2 != all_nodes.end(); id_2++)
-			if (abs(new_flow[*id_1][*id_2] - flow[*id_1][*id_2]) >= 1)
-				count += abs(new_flow[*id_1][*id_2] - flow[*id_1][*id_2]);
+	for (auto i : flow)
+		for (auto j : i.second)
+			if (abs(new_flow[i.first][j.first] - flow[i.first][j.first]) >= 1)
+				count += abs(new_flow[i.first][j.first] - flow[i.first][j.first]);
 
 	// 依据总变化量判断是否收敛（精度过高，则无法收敛）
 	if (count < 1)
@@ -226,8 +226,9 @@ void FrankWolfe(Network& network, string criteria) {
 			cout << "------------------flow------------------" << endl;
 			for (auto i : flow)
 				for (auto j : i.second)
-					if (j.second != 0)
-						cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
+					cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
+					//if (j.second != 0)
+					//	cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
 			Node node;
 			cout << "------------------cost------------------" << endl;
 			for (auto i : network.get_all_nodes()) {
@@ -257,16 +258,17 @@ void FrankWolfe(Network& network, string criteria) {
 			cout << "------------------flow------------------" << endl;
 			for (auto i : flow)
 				for (auto j : i.second)
-					if (j.second != 0)
-						cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
+					cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
+					//if (j.second != 0)
+					//	cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
 			Node node;
-			cout << "------------------cost------------------" << endl;
-			for (auto i : network.get_all_nodes()) {
-				node = network.get_node(i);
-				for (auto j : node.get_next())
-					cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
-			}
-			cout << "------------------iter = " << ++i << "------------------" << endl;
+			//cout << "------------------cost------------------" << endl;
+			//for (auto i : network.get_all_nodes()) {
+			//	node = network.get_node(i);
+			//	for (auto j : node.get_next())
+			//		cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
+			//}
+			cout << "------------------iter = " << ++i << "---obj = " << obj1 << "------------------" << endl;
 
 			new_flow = NetworkLoading(network); // 重新分配并记录
 

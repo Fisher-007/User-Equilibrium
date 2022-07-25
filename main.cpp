@@ -62,21 +62,21 @@ int main() {
 	//cout << flow["1"]["3"] << endl;
 
 	// 小网络测试结果正确性
-	//Network small_network = Network();
-	//string network = "./data/tri_link_test3.csv", od = "./data/tri_od_test3.csv";
-	//small_network.Init(network, od);
-	//FrankWolfe(small_network);
-	//cout << "------------------restult------------------" << endl;
-	//map<string, map<string, double>> flow = small_network.get_flow();
-	//for (auto i : flow)
-	//	for (auto j : i.second)
-	//		cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
-	//Node node;
-	//for (auto i : small_network.get_all_nodes()) {
-	//	node = small_network.get_node(i);
-	//	for (auto j : node.get_next())
-	//		cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
-	//}
+	Network small_network = Network();
+	string network = "./data/tri_link_test3.csv", od = "./data/tri_od_test3.csv";
+	small_network.Init(network, od);
+	FrankWolfe(small_network);
+	cout << "------------------restult------------------" << endl;
+	map<string, map<string, double>> flow = small_network.get_flow();
+	for (auto i : flow)
+		for (auto j : i.second)
+			cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
+	Node node;
+	for (auto i : small_network.get_all_nodes()) {
+		node = small_network.get_node(i);
+		for (auto j : node.get_next())
+			cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
+	}
 
 	// 测试 1：网络共一对OD、三条路径，测试结果如下：
 	// 1->2->5：流量 1947；花费 1098.8
@@ -96,6 +96,11 @@ int main() {
 	// 1->2->5：流量 3462；花费 3185.43
 	// 1->3->5：流量 2558；花费 3191.84
 	// 1->4->5：流量 1981；花费 3188.15
+
+	// 修改flow的初始化方法等细节后再进行 测试 3
+	// 1->2->5：流量 3888；花费 569.220
+	// 1->3->5：流量 2425；花费 569.372
+	// 1->4->5：流量 1688；花费 569.055
 
     // Sioux Falls 网络测试
 	//Network big_network = Network();
@@ -118,7 +123,7 @@ int main() {
 	// 测试 4：
 
 	// 测试read_file类
-	ReadFile file("./data/Anaheim_net.tntp", "./data/Anaheim_trips.tntp");
+	//ReadFile file("./data/Anaheim_net.tntp", "./data/Anaheim_trips.tntp");
 	// 总流量差0.4？
 
 	// Anaheim 网络测试

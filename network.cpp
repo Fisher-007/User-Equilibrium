@@ -5,8 +5,8 @@
 *            描述网络的数据需要从csv文件中读取，即需要先生成指定格式的csv文件*
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  2.4                                                             *
-*  @date     2022/07/22                                                      *
+*  @version  2.5                                                             *
+*  @date     2022/07/25                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -23,6 +23,8 @@
 *  2022/07/02 | 2.3       | Dong Yu        | Change Performance-function     *
 *----------------------------------------------------------------------------*
 *  2022/07/22 | 2.4       | Dong Yu        | Add tntp file read              *
+*----------------------------------------------------------------------------*
+*  2022/07/25 | 2.5       | Dong Yu        | Modify flow Initialize method   *
 *----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
@@ -45,7 +47,7 @@ Network::Network(int max_nodes) {
 int Network::AddNode(string id) {
     if (!all_nodes.count(id)) {
         this->all_nodes.insert(id);
-        this->nodes[id]=Node(id);
+        this->nodes[id] = Node(id);
         return 1;
     }
     else
@@ -113,10 +115,11 @@ void Network::Init(string network, string od, string criteria) {
         set<string> next;
         // 初始化 link 流量和当前的花费
         for (set<string>::iterator id_1 = this->all_nodes.begin(); id_1 != this->all_nodes.end(); id_1++) {
-            for (set<string>::iterator id_2 = this->all_nodes.begin(); id_2 != this->all_nodes.end(); id_2++)
+            next = this->nodes[*id_1].get_next();
+
+            for (set<string>::iterator id_2 = next.begin(); id_2 != next.end(); id_2++)
                 this->flow[*id_1][*id_2] = 0;
 
-            next = this->nodes[*id_1].get_next();
             for (set<string>::iterator id = next.begin(); id != next.end(); id++)
                 this->nodes[*id_1].UpdateCost(*id, 0);
         }
