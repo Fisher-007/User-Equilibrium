@@ -4,8 +4,8 @@
 *  @details  用于读取路网信息、路阻信息和 OD 数据                            *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  1.1                                                             *
-*  @date     2022/07/23                                                      *
+*  @version  2.0                                                             *
+*  @date     2022/07/30                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -14,6 +14,8 @@
 *  2022/07/22 | 1.0       | Dong Yu        | Create File                     *
 *----------------------------------------------------------------------------*
 *  2022/07/23 | 1.1       | Dong Yu        | Update Comment                  *
+*----------------------------------------------------------------------------*
+*  2022/07/30 | 2.0       | Dong Yu        | Code optimization               *
 *----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
@@ -39,11 +41,11 @@ private:
 	map<string, map<string, map<string, double>>> cost_parm;     // 储存每一个link的相关参数
 
 public:
-	ReadFile(string network, string od);
+	ReadFile(const string& network, const string& od);
 	// 通过metadata检查读取的数据结果有无问题
-	void CheckData(int zones, int nodes, int links, int first_thru_node, double total_flow);
+	void CheckData(const int& zones, const int& nodes, const int& links, const int& first_thru_node, const double& total_flow);
 	// 将line中信息转化为网络数据并进行储存
-	void set_network(string line);
+	void set_network(const string& line);
 	set<string> get_all_nodes();
 	map<string, set<string>> get_next_nodes();
 	map<string, map<string, double>> get_od_matrix();

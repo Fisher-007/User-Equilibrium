@@ -1,11 +1,11 @@
 /*****************************************************************************
-*  @file     read_file.cpp                                                     *
+*  @file     read_file.cpp                                                   *
 *  @brief    文件读取类                                                      *
 *  @details  用于读取路网信息、路阻信息和 OD 数据                            *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  1.1                                                             *
-*  @date     2022/07/23                                                      *
+*  @version  2.0                                                             *
+*  @date     2022/07/30                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -14,6 +14,8 @@
 *  2022/07/22 | 1.0       | Dong Yu        | Create File                     *
 *----------------------------------------------------------------------------*
 *  2022/07/23 | 1.1       | Dong Yu        | Update Comment                  *
+*----------------------------------------------------------------------------*
+*  2022/07/30 | 2.0       | Dong Yu        | Code optimization               *
 *----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
@@ -53,7 +55,7 @@ void ReadLine(ifstream& file, string& line) {
 * @param head 用于存储head部分
 * @param num 用于存储数值部分
 */
-void SplitMetaData(string line, string& head, int& num) {
+void SplitMetaData(const string& line, string& head, int& num) {
 	int data = 0, pos, len;
 	len = line.length();
 	pos = line.find_last_of(" ");
@@ -87,7 +89,7 @@ map<string, double> GetBuffer(string line) {
 * @brief 提取line中的数据，将line中信息转化为网络数据并进行储存
 * @param line 待提取的字符串
 */
-void ReadFile::set_network(string line) {
+void ReadFile::set_network(const string& line) {
 	int pos_last = line.find("	", 0), pos = line.find("	", pos_last + 1);
 	string ori, des;
 	vector<string> item = {"init_node", "term_node", "capacity", "length", "free_flow_time", "b", "power", "speed", "toll", "link_type"};
@@ -106,7 +108,7 @@ void ReadFile::set_network(string line) {
 }
 
 
-void ReadFile::CheckData(int zones, int nodes, int links, int first_thru_node, double total_flow) {
+void ReadFile::CheckData(const int& zones, const int& nodes, const int& links, const int& first_thru_node, const double& total_flow) {
 	if (this->od_matrix.size() != zones)
 		ExitMessage("Wrong zones!");
 
@@ -130,7 +132,7 @@ void ReadFile::CheckData(int zones, int nodes, int links, int first_thru_node, d
 }
 
 
-ReadFile::ReadFile(string network, string od) {
+ReadFile::ReadFile(const string& network, const string& od) {
 	StatusMessage("读取文件: ");
 
 	ifstream network_file;

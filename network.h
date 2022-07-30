@@ -5,8 +5,8 @@
 *            描述网络的数据需要从csv文件中读取，即需要先生成指定格式的csv文件*
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  3.0                                                             *
-*  @date     2022/07/25                                                      *
+*  @version  3.1                                                             *
+*  @date     2022/07/30                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -21,6 +21,8 @@
 *  2022/07/02 | 2.2       | Dong Yu        | Change Flow Type to Double      *
 *----------------------------------------------------------------------------*
 *  2022/07/25 | 3.0       | Dong Yu        | Add tntp file read              *
+*----------------------------------------------------------------------------*
+*  2022/07/30 | 3.1       | Dong Yu        | Code optimization               *
 *----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
@@ -49,17 +51,17 @@ class Network{
         map<string, map<string, double>> flow; // 网络当前流量
         
     public:
-        Network(int max_nodes = 1000);
+        Network(const int& max_nodes = 1000);
         // 初始化网络（节点、边、performance-function、OD）
-        void Init(string network = "./data/tri_link.csv", string od = "./data/tri_od.csv", string criteria = "simplified");
+        void Init(const string& network = "./data/tri_link.csv", const string& od = "./data/tri_od.csv", const string& _criteria = "simplified");
         // 新增一个节点
-        int AddNode(string id);
+        int AddNode(const string& id);
         // 获取网络中所有节点的 id 集合
         set<string> get_all_nodes()const;
         // 获取编号为 id 的节点
-        Node get_node(string id)const;
+        Node get_node(const string& id)const;
         // 设置网络流量
-        void set_flow(map<string, map<string, double>> flow);
+        void set_flow(const map<string, map<string, double>>& flow);
         // 获取网络当前流量
         map<string, map<string, double>> get_flow()const;
         // 获取网络 OD 矩阵

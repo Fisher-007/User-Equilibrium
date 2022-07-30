@@ -4,8 +4,8 @@
 *  @details  目前仅实现了 Frank Wolfe 算法求解                               *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  2.0                                                             *
-*  @date     2022/07/25                                                      *
+*  @version  2.1                                                             *
+*  @date     2022/07/30                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -32,6 +32,8 @@
 *  2022/07/25 | 1.9       | Dong Yu        | Modify cost handling method     *
 *----------------------------------------------------------------------------*
 *  2022/07/25 | 2.0       | Dong Yu        | Modify the message output method*
+*----------------------------------------------------------------------------*
+*  2022/07/30 | 2.1       | Dong Yu        | Code optimization               *
 *----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
@@ -152,14 +154,14 @@ map<string, map<string, double>> NetworkLoading(Network& network) {
           - 1 收敛
 		  - 0 不收敛
 */
-bool IsConverge(set<string> all_nodes, map<string, map<string, double>> flow, map<string, map<string, double>> new_flow) {
+bool IsConverge(const set<string>& all_nodes, const map<string, map<string, double>>& flow, const map<string, map<string, double>>& new_flow) {
 	int count = 0;
 
 	// 计算两次迭代结果的总变化量
 	for (auto i : flow)
 		for (auto j : i.second)
-			if (abs(new_flow[i.first][j.first] - flow[i.first][j.first]) >= 1)
-				count += abs(new_flow[i.first][j.first] - flow[i.first][j.first]);
+			if (abs(new_flow.at(i.first).at(j.first) - flow.at(i.first).at(j.first)) >= 1)
+				count += abs(new_flow.at(i.first).at(j.first) - flow.at(i.first).at(j.first));
 
 	// 依据总变化量判断是否收敛（精度过高，则无法收敛）
 	if (count < 1)
@@ -178,7 +180,7 @@ bool IsConverge(set<string> all_nodes, map<string, map<string, double>> flow, ma
 		  - 1 收敛
 		  - 0 不收敛
 */
-bool IsConverge(long double obj1, long double obj2) {
+bool IsConverge(const long double& obj1, const long double& obj2) {
 	if (abs(obj1 - obj2) / obj1 < 0.0001)
 		return 1;
 	else
@@ -192,28 +194,30 @@ bool IsConverge(long double obj1, long double obj2) {
 * @param delta 积分步长
 * @return 目标函数值
 */
-long double CalculateObj(Network network, double delta = 10) {
-	set<string> next, all_nodes;
+long double CalculateObj(const Network& network, double delta = 10) {
 	map<string, map<string, double>> parm;
+	set<string> next, all_nodes = network.get_all_nodes();
+	map<string, map<string, double>> flows = network.get_flow();
 	long double obj = 0;
 	double flow, f1, f2;
 	int n;
-	all_nodes = network.get_all_nodes();
 	for (set<string>::iterator id_1 = all_nodes.begin(); id_1 != all_nodes.end(); id_1++) {
+		parm = network.get_node(*id_1).get_cost_parm();
 		next = network.get_node(*id_1).get_next();
 		for (set<string>::iterator id_2 = next.begin(); id_2 != next.end(); id_2++) {
-			n = (int)(network.get_flow()[*id_1][*id_2] / delta);
-			parm = network.get_node(*id_1).get_cost_parm();
-			f1 = network.get_node(*id_1).CalculateCost(*id_2, 0);
+			n = (int)(flows[*id_1][*id_2] / delta);
+			// f1 = network.get_node(*id_1).CalculateCost(*id_2, 0);
+			f1 = CalculateCost(parm, *id_2, 0);
 			for (int i = 1; i < n; i++) {
 				flow = delta * i;
-				f2 = network.get_node(*id_1).CalculateCost(*id_2, flow);
-				obj += (f1 + f2) / 2 * delta;
+				// f2 = network.get_node(*id_1).CalculateCost(*id_2, flow);
+				f2 = CalculateCost(parm, *id_2, flow);
+				obj += (f1 + f2) * delta;
 				f1 = f2;
 			}
 		}
 	}
-	return obj;
+	return obj / 2;
 }
 
 
@@ -221,7 +225,7 @@ long double CalculateObj(Network network, double delta = 10) {
 * @brief Frank Wolfe 算法
 * @param network 当前网络的引用
 */
-void FrankWolfe(Network& network, string criteria) {
+void FrankWolfe(Network& network, const string& criteria) {
 
 	if (criteria == "flow") {
 		map<string, map<string, double>> flow, new_flow;

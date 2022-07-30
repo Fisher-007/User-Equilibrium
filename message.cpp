@@ -4,8 +4,8 @@
 *  @details  用于打印程序运行过程中需要展示的信息，包括警告和报错            *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  1.2                                                             *
-*  @date     2022/07/25                                                      *
+*  @version  2.0                                                             *
+*  @date     2022/07/30                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -17,29 +17,31 @@
 *----------------------------------------------------------------------------*
 *  2022/07/25 | 1.2       | Dong Yu        | Add iter message print          *
 *----------------------------------------------------------------------------*
+*  2022/07/30 | 2.0       | Dong Yu        | Code optimization               *
+*----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
 #include "message.h"
 
 
-void StatusMessage(string message) {
+void StatusMessage(const string& message) {
 	// 后续在参数与格式方面可以继续拓展
 	cout << message << endl;
 }
 
 
-void StatusIter(int num, int len, string fill) {
+void StatusIter(const int& num, const int& len, const string& fill) {
 	// cout << "iter = " << setfill(fill) << setw(len) << num << ": ";
 	cout << "iter = " << num << ": ";
 }
 
 
-void StatusMessageB(string message) {
+void StatusMessageB(const string& message) {
 	cout << message << "...";
 }
 
 
-void StatusMessageA(string message) {
+void StatusMessageA(const string& message) {
 	if (message == "")
 		cout << "Succeed!" << endl;
 	else
@@ -47,12 +49,12 @@ void StatusMessageA(string message) {
 }
 
 
-void Warning(string message) {
+void Warning(const string& message) {
 	cout << "Warning: " << message << endl;
 }
 
 
-void ExitMessage(string message) {
+void ExitMessage(const string& message) {
 	cout << "Error: " << message << endl;
 	exit(EXIT_FAILURE);
 }

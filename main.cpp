@@ -38,6 +38,7 @@
 #include "shortest_path.h"
 #include "user_equilibrium_solver.h"
 #include "read_file.h"
+#include<time.h>
 #include <iostream>
 using namespace std;
 
@@ -66,7 +67,7 @@ int main() {
 	//Network small_network = Network();
 	//string network = "./data/tri_link_test3.csv", od = "./data/tri_od_test3.csv";
 	//small_network.Init(network, od);
-	//FrankWolfe(small_network);
+	//FrankWolfe(small_network, "obj");
 	//cout << "------------------restult------------------" << endl;
 	//map<string, map<string, double>> flow = small_network.get_flow();
 	//for (auto i : flow)
@@ -130,6 +131,10 @@ int main() {
 	// ×ÜÁ÷Á¿²î0.4£¿
 
 	// Anaheim ÍøÂç²âÊÔ
+
+	time_t time_start, time_end;
+	time(&time_start);
+
 	Network big_network = Network();
 	string network = "./data/Anaheim_net.tntp", od = "./data/Anaheim_trips.tntp";
 	big_network.Init(network, od, "tntp");
@@ -149,6 +154,9 @@ int main() {
 		for (auto j : node.get_next())
 			cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
 	}
+
+	time(&time_end);
+	cout << "Total time used: " << time_end - time_start << endl;
 
 	// ²âÊÔ 5£º
 }

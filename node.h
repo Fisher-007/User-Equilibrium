@@ -5,8 +5,8 @@
 *            不单独使用，其实例主要作为 Network 类的成员函数                 *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  3.0                                                             *
-*  @date     2022/07/25                                                      *
+*  @version  3.1                                                             *
+*  @date     2022/07/30                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -24,6 +24,8 @@
 *----------------------------------------------------------------------------*
 *  2022/07/25 | 3.0       | Dong Yu        | Modify cost handling method     *
 *----------------------------------------------------------------------------*
+*  2022/07/30 | 3.1       | Dong Yu        | Code optimization               *
+*----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
 #pragma once
@@ -40,12 +42,14 @@ using namespace std;
 #define BETA 4
 
 
+extern string criteria;
+
+
 class Node {
 
 private:
     string id; // 节点编号
     int degree; // 节点度
-    string mode;
     set<string> next; // 与该节点相邻的其他所有节点
     map<string, double> cost; // 与相邻节点间 link 当前的花费，可能会随着网络流量的变化而改变
     // map<string, map<string, double>> cost_parm; // 储存与相邻节点间 link 的 performance-function: c + b * flow + c * flow ^ 2
@@ -53,25 +57,33 @@ private:
 
 public:
     Node();
-    Node(string id);
+    Node(const string& id);
     // 更新相邻节点
     // void UpdateNext(string id, double c, double b = 0, double a = 0);
-    void UpdateNext(string id, double t0, double c);
-    void UpdateNext(string id, map<string, double> parm);
+    void UpdateNext(const string& id, const double& t0, const double& c);
+    void UpdateNext(const string& id, const map<string, double>& parm);
     // 获取相邻节点
-    set<string> get_next();
+    set<string> get_next()const;
     // 获取与节点 id 之间 link 的花费
-    double get_cost(string id);
+    double get_cost(const string& id)const;
     // 设置与节点 id 之间 link 的 performance-function
     // void set_cost_parm(string id, double c, double b, double a);
-    void set_cost_parm(string id, double t0, double c);
-    void set_cost_parm(string id, map<string, double> parm);
+    void set_cost_parm(const string& id, const double& t0, const double& c);
+    void set_cost_parm(const string& id, const map<string, double>& parm);
     // 获取与相邻节点间 link 的 performance-function
-    map<string, map<string, double>> get_cost_parm();
+    map<string, map<string, double>> get_cost_parm()const;
     // 根据流量，更新与节点 id 之间 link 的花费
-    void UpdateCost(string id, double flow);
+    void UpdateCost(const string& id, const double& flow);
     // 根据流量，计算与节点 id 之间 link 的花费
-    double CalculateCost(string id, double flow);
+    // double CalculateCost(const string& id, const double& flow);
 };
+
+
+inline double CalculateCost(const map<string, map<string, double>>& parm, const string& id, const double& flow) {
+    if (criteria == "simplified")
+        return parm.at(id).at("t0") * (1 + ALPHA * pow(flow / parm.at(id).at("c"), BETA));
+    else if (criteria == "tntp")
+        return parm.at(id).at("free_flow_time") * (1 + parm.at(id).at("b") * pow(flow / parm.at(id).at("capacity"), parm.at(id).at("power")));
+}
 
 #endif

@@ -4,8 +4,8 @@
 *  @details  目前仅实现了用于 Frank Wolfe 算法的二分法                       *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  1.6                                                             *
-*  @date     2022/07/25                                                      *
+*  @version  1.7                                                             *
+*  @date     2022/07/30                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -25,6 +25,8 @@
 *----------------------------------------------------------------------------*
 *  2022/07/25 | 1.6       | Dong Yu        | Modify cost handling method     *
 *----------------------------------------------------------------------------*
+*  2022/07/30 | 1.7       | Dong Yu        | Code optimization               *
+*----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
 
@@ -41,12 +43,12 @@
 * @retval alpha \in [0, 1]
 * @see xn+1 = xn + \alpha * (yn - xn)
 */
-double BisectionMethod(Network network, map<string, map<string, double>> xn, map<string, map<string, double>> yn) {
+double BisectionMethod(const Network& network, const map<string, map<string, double>>& xn, const map<string, map<string, double>>& yn) {
 	double alpha = 0, a = 0, b = 1, obj;
 	map<string, map<string, double>> flow = xn;
 	set<string> all_nodes = network.get_all_nodes();
 	set<string> next;
-	Node node;
+	map<string, map<string, double>> parm;
 
 	while (abs(b - a) >= 1e-4) {
 		obj = 0;
@@ -55,15 +57,16 @@ double BisectionMethod(Network network, map<string, map<string, double>> xn, map
 		// 计算 alpha 下的流量 xn+1
 		for (auto i : flow)
 			for (auto j : i.second)
-				flow[i.first][j.first] = (double)(xn[i.first][j.first] + alpha * (yn[i.first][j.first] - xn[i.first][j.first]));
+				flow[i.first][j.first] = (double)(xn.at(i.first).at(j.first) + alpha * (yn.at(i.first).at(j.first) - xn.at(i.first).at(j.first)));
 
 		// 计算目标函数在 alpha 处的导数
 		for (set<string>::iterator id_1 = all_nodes.begin(); id_1 != all_nodes.end(); id_1++) {
-			node = network.get_node(*id_1);
-			for (auto id_2 : node.get_next())
+			parm = network.get_node(*id_1).get_cost_parm();
+			next = network.get_node(*id_1).get_next();
+			for (auto id_2 : next)
 				// obj += (yn[*origin][i.first] - xn[*origin][i.first]) * (i.second["c"] + i.second["b"] * flow[*origin][i.first] + i.second["a"] * flow[*origin][i.first] * flow[*origin][i.first]);
 				// obj += (yn[*origin][i.first] - xn[*origin][i.first]) * i.second["t0"] * (1 + ALPHA * pow(flow[*origin][i.first] / i.second["c"], BETA));
-				obj += (yn[*id_1][id_2] - xn[*id_1][id_2]) * node.CalculateCost(id_2, flow[*id_1][id_2]);
+				obj += (yn.at(*id_1).at(id_2) - xn.at(*id_1).at(id_2)) * CalculateCost(parm, id_2, flow[*id_1][id_2]);
 		}
 
 		// 依据导数的符号缩小区间

@@ -5,8 +5,8 @@
 *            描述网络的数据需要从csv文件中读取，即需要先生成指定格式的csv文件*
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  3.0                                                             *
-*  @date     2022/07/25                                                      *
+*  @version  3.1                                                             *
+*  @date     2022/07/30                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -26,13 +26,15 @@
 *----------------------------------------------------------------------------*
 *  2022/07/25 | 3.0       | Dong Yu        | Add tntp file read              *
 *----------------------------------------------------------------------------*
+*  2022/07/30 | 3.1       | Dong Yu        | Code optimization               *
+*----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
 
 #include "network.h"
 
 
-Network::Network(int max_nodes) {
+Network::Network(const int& max_nodes) {
     this->max_nodes = max_nodes;
 }
 
@@ -44,7 +46,7 @@ Network::Network(int max_nodes) {
           - 1 新增成功
           - 0 节点已存在
 */
-int Network::AddNode(string id) {
+int Network::AddNode(const string& id) {
     if (!all_nodes.count(id)) {
         this->all_nodes.insert(id);
         this->nodes[id] = Node(id);
@@ -71,8 +73,9 @@ int Network::AddNode(string id) {
        格式 1 ：t0 * (1 + alpha * (v / c) ^ beta)
        格式 2 ：BPR函数
 */
-void Network::Init(string network, string od, string criteria) {
-    if (criteria == "simplified") {
+void Network::Init(const string& network, const string& od, const string& _criteria) {
+    criteria = _criteria;
+    if (_criteria == "simplified") {
         string line;
         ifstream network_data(network);
         // 读取 network 文件
@@ -123,7 +126,7 @@ void Network::Init(string network, string od, string criteria) {
             }
         }
     }
-    else if (criteria == "tntp") {
+    else if (_criteria == "tntp") {
         ReadFile file("./data/Anaheim_net.tntp", "./data/Anaheim_trips.tntp");
         this->all_nodes = file.get_all_nodes();
         this->od_matrix = file.get_od_matrix();
@@ -155,11 +158,11 @@ set<string> Network::get_all_nodes() const {
     return this->all_nodes;
 }
 
-Node Network::get_node(string id) const {
+Node Network::get_node(const string& id) const {
     return this->nodes.find(id)->second;
 }
 
-void Network::set_flow(map<string, map<string, double>> flow) {
+void Network::set_flow(const map<string, map<string, double>>& flow) {
     this->flow = flow;
 }
 

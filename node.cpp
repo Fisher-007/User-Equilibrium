@@ -5,8 +5,8 @@
 *            不单独使用，其实例主要作为 Network 类的成员函数                 *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  3.0                                                             *
-*  @date     2022/07/25                                                      *
+*  @version  3.1                                                             *
+*  @date     2022/07/30                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -24,6 +24,8 @@
 *----------------------------------------------------------------------------*
 *  2022/07/25 | 3.0       | Dong Yu        | Modify cost handling method     *
 *----------------------------------------------------------------------------*
+*  2022/07/30 | 3.1       | Dong Yu        | Code optimization               *
+*----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
 
@@ -32,9 +34,12 @@
 #include <math.h>
 
 
+string criteria;
+
+
 Node::Node() :degree(0) {}
 
-Node::Node(string id) {
+Node::Node(const string& id) {
     this->id = id;
     this->degree = 0;
 }
@@ -45,12 +50,12 @@ Node::Node(string id) {
 //    this->cost_parm[id]["a"] = a;
 //}
 
-void Node::set_cost_parm(string id, double t0, double c) {
+void Node::set_cost_parm(const string& id, const double& t0, const double& c) {
     this->cost_parm[id]["t0"] = t0;
     this->cost_parm[id]["c"] = c;
 }
 
-void Node::set_cost_parm(string id, map<string, double> parm) {
+void Node::set_cost_parm(const string& id, const map<string, double>& parm) {
     this->cost_parm[id] = parm;
 }
 
@@ -61,46 +66,44 @@ void Node::set_cost_parm(string id, map<string, double> parm) {
 //    this->degree++;
 //}
 
-void Node::UpdateNext(string id, double t0, double c) {
-    this->mode = "simplified";
+void Node::UpdateNext(const string& id, const double& t0, const double& c) {
     this->next.insert(id);
     this->cost[id] = INT_MAX;
     set_cost_parm(id, t0, c);
     this->degree++;
 }
 
-void Node::UpdateNext(string id, map<string, double> parm) {
-    this->mode = "tntp";
+void Node::UpdateNext(const string& id, const map<string, double>& parm) {
     this->next.insert(id);
     this->cost[id] = INT_MAX;
     set_cost_parm(id, parm);
     this->degree++;
 }
 
-set<string> Node::get_next() {
+set<string> Node::get_next() const {
     return this->next;
 }
 
-double Node::get_cost(string id) {
-    return this->cost[id];
+double Node::get_cost(const string& id) const {
+    return this->cost.at(id);
 }
 
-void Node::UpdateCost(string id, double flow) {
+void Node::UpdateCost(const string& id, const double& flow) {
     // this->cost[id] = this->cost_parm[id]["c"] + this->cost_parm[id]["b"] * flow + this->cost_parm[id]["a"] * flow * flow;
-    if (this->mode == "simplified")
+    if (criteria == "simplified")
         this->cost[id] = this->cost_parm[id]["t0"] * (1 + ALPHA * pow(flow / this->cost_parm[id]["c"], BETA));
-    else if (this->mode == "tntp")
+    else if (criteria == "tntp")
         this->cost[id] = this->cost_parm[id]["free_flow_time"] * (1 + cost_parm[id]["b"] * pow(flow / cost_parm[id]["capacity"], cost_parm[id]["power"]));
 }
 
-double Node::CalculateCost(string id, double flow) {
-    // this->cost[id] = this->cost_parm[id]["c"] + this->cost_parm[id]["b"] * flow + this->cost_parm[id]["a"] * flow * flow;
-    if (this->mode == "simplified")
-        return this->cost_parm[id]["t0"] * (1 + ALPHA * pow(flow / this->cost_parm[id]["c"], BETA));
-    else if (this->mode == "tntp")
-        return this->cost_parm[id]["free_flow_time"] * (1 + cost_parm[id]["b"] * pow(flow / cost_parm[id]["capacity"], cost_parm[id]["power"]));
-}
+//double Node::CalculateCost(const string& id, const double& flow) {
+//    // this->cost[id] = this->cost_parm[id]["c"] + this->cost_parm[id]["b"] * flow + this->cost_parm[id]["a"] * flow * flow;
+//    if (criteria == "simplified")
+//        return this->cost_parm[id]["t0"] * (1 + ALPHA * pow(flow / this->cost_parm[id]["c"], BETA));
+//    else if (criteria == "tntp")
+//        return this->cost_parm[id]["free_flow_time"] * (1 + cost_parm[id]["b"] * pow(flow / cost_parm[id]["capacity"], cost_parm[id]["power"]));
+//}
 
-map<string, map<string, double>> Node::get_cost_parm() {
+map<string, map<string, double>> Node::get_cost_parm() const {
     return this->cost_parm;
 }

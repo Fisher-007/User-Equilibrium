@@ -4,8 +4,8 @@
 *  @details  目前仅实现了 Frank Wolfe 算法求解                               *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  1.1                                                             *
-*  @date     2022/06/05                                                      *
+*  @version  1.6                                                             *
+*  @date     2022/07/30                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -18,6 +18,8 @@
 *  2022/07/02 | 1.2       | Dong Yu        | Change Flow Type to Double      *
 *----------------------------------------------------------------------------*
 *  2022/07/04 | 1.5       | Dong Yu        | Add a New Convergence Judgment  *
+*----------------------------------------------------------------------------*
+*  2022/07/30 | 1.6       | Dong Yu        | Code optimization               *
 *----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
@@ -38,7 +40,7 @@ using namespace std;
 map<string, map<string, double>> AllOrNothingAssignment(const Network& network);
 
 // 使用 Frank Wolfe 算法求解 UE
-void FrankWolfe(Network& network, string criteria = "flow");
+void FrankWolfe(Network& network, const string& criteria = "flow");
 
 
 #endif

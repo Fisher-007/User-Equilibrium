@@ -4,8 +4,8 @@
 *  @details  目前仅实现了用于 Frank Wolfe 算法的二分法                       *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  1.5                                                             *
-*  @date     2022/07/25                                                      *
+*  @version  1.6                                                             *
+*  @date     2022/07/30                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -20,6 +20,8 @@
 *  2022/07/03 | 1.4       | Dong Yu        | Change Step Type to Double      *
 *----------------------------------------------------------------------------*
 *  2022/07/25 | 1.5       | Dong Yu        | Modify cost handling method     *
+*----------------------------------------------------------------------------*
+*  2022/07/30 | 1.6       | Dong Yu        | Code optimization               *
 *----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
@@ -36,7 +38,7 @@
 using namespace std;
 
 // 二分法(需传参network，可改进)
-double BisectionMethod(Network network, map<string, map<string, double>> xn, map<string, map<string, double>> yn);
+double BisectionMethod(const Network& network, const map<string, map<string, double>>& xn, const map<string, map<string, double>>& yn);
 
 // 还可以继续完善其他的方法：
 //float GoldenSectionMethod();

@@ -4,8 +4,8 @@
 *  @details  用于求解最短路                                                  *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  1.1                                                             *
-*  @date     2022/06/05                                                      *
+*  @version  1.2                                                             *
+*  @date     2022/07/30                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -14,6 +14,8 @@
 *  2022/06/02 | 1.0       | Dong Yu        | Create file                     *
 *----------------------------------------------------------------------------*
 *  2022/06/05 | 1.1       | Dong Yu        | Update Comment                  *
+*----------------------------------------------------------------------------*
+*  2022/07/30 | 1.2       | Dong Yu        | Code optimization               *
 *----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
@@ -29,7 +31,7 @@
 * @return 返回 network 中 origin 到所有 destinations 的最短 path
 * @retval 返回值包括到所有 destination 对应的 path（倒序存放的一系列 link） 
 */
-map<string, vector<string>> GetShortestPath(string origin, const Network& network) {
+map<string, vector<string>> GetShortestPath(const string& origin, const Network& network) {
 
 	map<string, int> state; // 每个节点状态（0-1），0 代表已选中
 	map<string, double> total_cost; // 当前迭代中 origin 到每个节点的花费
