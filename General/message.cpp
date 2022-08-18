@@ -1,11 +1,11 @@
 /*****************************************************************************
-*  @file     message.h                                                       *
+*  @file     message.cpp                                                       *
 *  @brief    信息处理类                                                      *
 *  @details  用于打印程序运行过程中需要展示的信息，包括警告和报错            *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  3.0                                                             *
-*  @date     2022/08/18                                                      *
+*  @version  2.0                                                             *
+*  @date     2022/07/30                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -19,36 +19,42 @@
 *----------------------------------------------------------------------------*
 *  2022/07/30 | 2.0       | Dong Yu        | Code optimization               *
 *----------------------------------------------------------------------------*
-*  2022/08/18 | 3.0       | Dong Yu        | Modified for MPI                *
-*----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
-#pragma once
-#ifndef MESSAGE_H
-#define MESSAGE_H
+#include "message.h"
 
 
-#include <iostream>
-#include <string>
-#include <iomanip>
-using namespace std;
+void StatusMessage(const string& message) {
+	// 后续在参数与格式方面可以继续拓展
+	cout << message << endl;
+}
 
 
-extern int myid, numprocs;
+void StatusIter(const int& num, const int& len, const string& fill) {
+	// cout << "iter = " << setfill(fill) << setw(len) << num << ": ";
+	cout << "iter = " << num << ": ";
+}
 
 
-// 打印一般文字信息
-void StatusMessage(const string& message);
-// 打印一般文字信息
-void StatusIter(const int& num, const int& len = 3, const string& fill = "0");
-// 打印事件完成前信息，文字末尾加...
-void StatusMessageB(const string& message);
-// 打印事件完成后信息，无特殊需要默认为Succeed！
-void StatusMessageA(const string& message = "");
-// 打印警告信息
-void Warning(const string& message);
-// 打印Error信息并退出
-void ExitMessage(const string& message);
+void StatusMessageB(const string& message) {
+	cout << message << "...";
+}
 
 
-#endif
+void StatusMessageA(const string& message) {
+	if (message == "")
+		cout << "Succeed!" << endl;
+	else
+		cout << message << endl;
+}
+
+
+void Warning(const string& message) {
+	cout << "Warning: " << message << endl;
+}
+
+
+void ExitMessage(const string& message) {
+	cout << "Error: " << message << endl;
+	exit(EXIT_FAILURE);
+}
