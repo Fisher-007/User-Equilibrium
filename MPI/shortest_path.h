@@ -1,46 +1,37 @@
 /*****************************************************************************
-*  @file     user_equilibrium_solver.h                                       *
-*  @brief    用户均衡求解类                                                  *
-*  @details  目前仅实现了 Frank Wolfe 算法求解                               *
+*  @file     shortest_path.h                                                 *
+*  @brief    最短路类                                                        *
+*  @details  用于求解最短路                                                  *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  1.6                                                             *
+*  @version  1.2                                                             *
 *  @date     2022/07/30                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
 *  <Date>     | <Version> | <Author>       | <Description>                   *
 *----------------------------------------------------------------------------*
-*  2022/06/02 | 1.0       | Dong Yu        | Create File                     *
+*  2022/06/02 | 1.0       | Dong Yu        | Create file                     *
 *----------------------------------------------------------------------------*
 *  2022/06/05 | 1.1       | Dong Yu        | Update Comment                  *
 *----------------------------------------------------------------------------*
-*  2022/07/02 | 1.2       | Dong Yu        | Change Flow Type to Double      *
-*----------------------------------------------------------------------------*
-*  2022/07/04 | 1.5       | Dong Yu        | Add a New Convergence Judgment  *
-*----------------------------------------------------------------------------*
-*  2022/07/30 | 1.6       | Dong Yu        | Code optimization               *
+*  2022/07/30 | 1.2       | Dong Yu        | Code optimization               *
 *----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
 
 #pragma once
-#ifndef UE_EQUILIBRIUM_SOLVER
-#define UE_EQUILIBRIUM_SOLVER
+#ifndef SORTEST_PATH
+#define SORTEST_PATH
 
 #include "network.h"
 #include <vector>
-#include <set>
-#include <map>
 #include <string>
 using namespace std;
 
 
-// 全由全无分配
-map<string, map<string, double>> AllOrNothingAssignment(const Network& network);
-
-// 使用 Frank Wolfe 算法求解 UE
-void FrankWolfe(Network& network, const string& criteria = "flow");
+// 使用 Dijkstra 算法，返回 Network 中 origin 到所有 destinations 的最短 path
+map<string, vector<string>> GetShortestPath(const string& origin, const Network& network);
 
 
 #endif

@@ -7,8 +7,8 @@
 *            具体可以参考下面小网络的例子，更详细内容需查看对应的.h与.cpp文件*
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  5.0                                                             *
-*  @date     2022/08/18                                                      *
+*  @version  4.0                                                             *
+*  @date     2022/07/25                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -30,8 +30,6 @@
 *----------------------------------------------------------------------------*
 *  2022/07/25 | 4.0       | Dong Yu        | Test on Anaheim Network(T5)     *
 *----------------------------------------------------------------------------*
-*  2022/08/18 | 5.0       | Dong Yu        | Test for MPI                    *
-*----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
 
@@ -40,55 +38,143 @@
 #include "shortest_path.h"
 #include "user_equilibrium_solver.h"
 #include "read_file.h"
-#include <mpi.h>
-#include <time.h>
+#include<time.h>
 #include <iostream>
 using namespace std;
 
+int main() {
 
-int myid, numprocs;
+	// 部分子模块测试
+	//Network myNetwork = Network();
+	//myNetwork.Init();
+	//cout << myNetwork.get_node("1").get_cost("3") << endl;
+	//cout << myNetwork.get_flow()["1"]["3"] << endl;
 
+	//map<string, vector<string>> result = GetShortestPath("1", myNetwork);
+	//for (auto i : result["20"])
+	//{
+	//	cout << i << endl;
+	//}
 
-inline void PrintResult(const Network& network) {
+	//map<string, map<string, int>> flow = AllOrNothingAssignment(myNetwork);
+	//cout << flow["1"]["3"] << endl;
+
+	//FrankWolfe(myNetwork);
+	//flow = myNetwork.get_flow();
+	//cout << flow["1"]["3"] << endl;
+
+	// 小网络测试结果正确性
+	//Network small_network = Network();
+	//string network = "./data/tri_link_test3.csv", od = "./data/tri_od_test3.csv";
+	//small_network.Init(network, od);
+	//FrankWolfe(small_network, "obj");
+	//cout << "------------------restult------------------" << endl;
+	//map<string, map<string, double>> flow = small_network.get_flow();
+	//for (auto i : flow)
+	//	for (auto j : i.second)
+	//		cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
+	//Node node;
+	//for (auto i : small_network.get_all_nodes()) {
+	//	node = small_network.get_node(i);
+	//	for (auto j : node.get_next())
+	//		cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
+	//}
+
+	// 测试 1：网络共一对OD、三条路径，测试结果如下：
+	// 1->2->5：流量 1947；花费 1098.8
+	// 1->3->5：流量 26；花费 1132
+	// 1->4->5：流量 586；花费 1099
+	// ×总流量不守恒，可能是数据类型int导致
+
+    // 测试 2：int 转换为 double：
+	// 1->2->5：流量 2292；花费 1236.8
+	// 1->3->5：流量 28；花费 1242
+	// 1->4->5：流量 680；花费 1240
+
+	// 测试 3：改变performance-function：
+	// cost过大会导致计算溢出
+	// obj没有及时清零
+	// 误差累积，导致无法收敛，或者收敛很慢，注意数据类型之间的转换（alpha）
+	// 1->2->5：流量 3462；花费 3185.43
+	// 1->3->5：流量 2558；花费 3191.84
+	// 1->4->5：流量 1981；花费 3188.15
+
+	// 修改flow的初始化方法等细节后再进行 测试 3
+	// 1->2->5：流量 3888；花费 569.220
+	// 1->3->5：流量 2425；花费 569.372
+	// 1->4->5：流量 1688；花费 569.055
+
+    // Sioux Falls 网络测试
+	//Network big_network = Network();
+	//string network = "./data/tri_link.csv", od = "./data/tri_od.csv";
+	//big_network.Init(network, od);
+	//FrankWolfe(big_network, "obj");
+	//cout << "------------------restult------------------" << endl;
+	//map<string, map<string, double>> flow = big_network.get_flow();
+	//for (auto i : flow)
+	//	for (auto j : i.second)
+	//		if (j.second != 0)
+	//			cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
+	//Node node;
+	//for (auto i : big_network.get_all_nodes()) {
+	//	node = big_network.get_node(i);
+	//	for (auto j : node.get_next())
+	//		cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
+	//}
+
+	// 测试 4：
+	// 原代码没有问题，无法收敛原因在于收敛条件过于苛刻
+	// 另一个原因在于，在基于目标函数obj的收敛判断中，目标函数有误，错将cost当作flow
+	// 出现溢出问题
+	// 对比 python 代码，可知 Frank Wolfe 算法没有问题
+
+	// 测试read_file类
+	//ReadFile file("./data/Anaheim_net.tntp", "./data/Anaheim_trips.tntp");
+	// 总流量差0.4？
+
+	// Anaheim 网络测试
+
+	//time_t time_start, time_end;
+	//time(&time_start);
+
+	//Network big_network = Network();
+	//string network = "./data/Anaheim_net.tntp", od = "./data/Anaheim_trips.tntp";
+	//big_network.Init(network, od, "tntp");
+	//FrankWolfe(big_network, "obj");
+	//cout << "------------------restult------------------" << endl;
+	//map<string, map<string, double>> flow = big_network.get_flow();
+	//Node node;
+
+	//for (auto i : big_network.get_all_nodes()) {
+	//	node = big_network.get_node(i);
+	//	for (auto j : node.get_next())
+	//		cout << i << " --> " << j << " is " << flow[i][j] << endl;
+	//}
+
+	//for (auto i : big_network.get_all_nodes()) {
+	//	node = big_network.get_node(i);
+	//	for (auto j : node.get_next())
+	//		cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
+	//}
+
+	//time(&time_end);
+	//cout << "Total time used: " << time_end - time_start << endl;
+
+	// Anaheim 网络测试（.csv数据）
+	Network big_network = Network();
+	string network = "./data/Anaheim_link.csv", od = "./data/Anaheim_od.csv";
+	big_network.Init(network, od);
+	FrankWolfe(big_network, "obj");
 	cout << "------------------restult------------------" << endl;
-	map<string, map<string, double>> flow = network.get_flow();
+	map<string, map<string, double>> flow = big_network.get_flow();
+	for (auto i : flow)
+		for (auto j : i.second)
+			if (j.second != 0)
+				cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
 	Node node;
-
-	for (auto i : network.get_all_nodes()) {
-		node = network.get_node(i);
-		for (auto j : node.get_next())
-			cout << i << " --> " << j << " is " << flow[i][j] << endl;
-	}
-
-	for (auto i : network.get_all_nodes()) {
-		node = network.get_node(i);
+	for (auto i : big_network.get_all_nodes()) {
+		node = big_network.get_node(i);
 		for (auto j : node.get_next())
 			cout << "Cost:" << i << " --> " << j << " is " << node.get_cost(j) << endl;
 	}
-}
-
-
-int main(int argc, char* argv[]) {
-
-	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD, &myid);
-	MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-
-	time_t time_start, time_end;
-	time(&time_start);
-
-	Network big_network = Network();
-	string network = "./data/Anaheim_net.tntp", od = "./data/Anaheim_trips.tntp";
-	big_network.Init(network, od, "tntp");
-
-	MPI_Barrier(MPI_COMM_WORLD);
-	FrankWolfe(big_network, "obj");
-
-	if (myid == 0) {
-		PrintResult(big_network);
-		time(&time_end);
-		cout << "Total time used: " << time_end - time_start << endl;
-	}
-
-	MPI_Finalize();
 }

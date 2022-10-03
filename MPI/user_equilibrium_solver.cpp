@@ -4,8 +4,8 @@
 *  @details  目前仅实现了 Frank Wolfe 算法求解                               *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  2.1                                                             *
-*  @date     2022/07/30                                                      *
+*  @version  3.0                                                             *
+*  @date     2022/08/18                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -35,6 +35,8 @@
 *----------------------------------------------------------------------------*
 *  2022/07/30 | 2.1       | Dong Yu        | Code optimization               *
 *----------------------------------------------------------------------------*
+*  2022/08/18 | 3.0       | Dong Yu        | Modified for MPI                *
+*----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
 
@@ -43,6 +45,7 @@
 #include "one_dimensional_minimization.h"
 #include "shortest_path.h"
 #include <stdlib.h>
+#include <mpi.h>
 #include <iostream>
 
 
@@ -55,38 +58,40 @@
 map<string, map<string, double>> AllOrNothingAssignment(const Network& network) {
 
 	map<string, map<string, double>> od_matrix = network.get_od_matrix();
-	map<string, map<string, double>> flow = network.get_flow();
+	map<string, map<string, double>> _flow = network.get_flow(), flow;
 	map<string, vector<string>> shortest_path;
-	vector<string> path;
+	vector<string> path, origin;
 	set<string> all_nodes = network.get_all_nodes();
 
 	// 初始化 link 流量为 0
-	for (auto i : flow)
-		for (auto j : i.second)
+	for (auto i : _flow)
+		for (auto j : i.second) {
+			_flow[i.first][j.first] = 0;
 			flow[i.first][j.first] = 0;
+		}
+
+	// 获取origin
+	for (auto i : od_matrix)
+		origin.push_back(i.first);
 
 	// 流量分配
-	for (auto origin : od_matrix) {
+	for (int o = myid; o < origin.size(); o += numprocs) {
 
 		// 计算 origin 到其他 destination 的最短路（link序列）
-		shortest_path = GetShortestPath(origin.first, network);
+		shortest_path = GetShortestPath(origin[o], network);
 
-		for (auto destination : origin.second) {
+		for (auto destination : od_matrix[origin[o]]) {
 			path = shortest_path[destination.first];
 
 			// 当序列长度不为 1（origin本身也在序列中）时，将 origin-destination 的流量全部加载到 path 中的每一条 link 上
 			if (path.size() > 1)
 				for (int i = 1; i < path.size(); i++)
-					flow[path[i]][path[i - 1]] += od_matrix[origin.first][destination.first];
+					_flow[path[i]][path[i - 1]] += od_matrix[origin[o]][destination.first];
 		}
 	}
-
-	//cout << "------------------All or Nothing------------------" << endl;
-	//for (auto i : flow)
-	//	for (auto j : i.second)
-	//		cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
-			//if (j.second != 0)
-			//    cout << i.first << " --> " << j.first << " is " << round(j.second) << endl;
+	for (auto i : _flow)
+		for (auto j : i.second)
+			MPI_Allreduce(&_flow[i.first][j.first], &flow[i.first][j.first], 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
 	return flow;
 }
@@ -181,7 +186,7 @@ bool IsConverge(const set<string>& all_nodes, const map<string, map<string, doub
 		  - 0 不收敛
 */
 bool IsConverge(const long double& obj1, const long double& obj2) {
-	if (abs(obj1 - obj2) / obj1 < 1e-7)
+	if (abs(obj1 - obj2) / obj1 < 0.0001)
 		return 1;
 	else
 		return 0;
@@ -194,23 +199,23 @@ bool IsConverge(const long double& obj1, const long double& obj2) {
 * @param delta 积分步长
 * @return 目标函数值
 */
-long double CalculateObj(const Network& network, double delta = 0.1) {
+long double CalculateObj(const Network& network, double delta = 10) {
 	map<string, map<string, double>> parm;
-	set<string> next, all_nodes = network.get_all_nodes();
+	set<string> next, nodes = network.get_all_nodes();
+	vector<string> all_nodes;
+	all_nodes.assign(nodes.begin(), nodes.end());
 	map<string, map<string, double>> flows = network.get_flow();
 	long double obj = 0;
 	double flow, f1, f2;
 	int n;
-	for (set<string>::iterator id_1 = all_nodes.begin(); id_1 != all_nodes.end(); id_1++) {
-		parm = network.get_node(*id_1).get_cost_parm();
-		next = network.get_node(*id_1).get_next();
+	for (int i = myid; i < all_nodes.size(); i += numprocs) {
+		parm = network.get_node(all_nodes[i]).get_cost_parm();
+		next = network.get_node(all_nodes[i]).get_next();
 		for (set<string>::iterator id_2 = next.begin(); id_2 != next.end(); id_2++) {
-			n = (int)(flows[*id_1][*id_2] / delta);
-			// f1 = network.get_node(*id_1).CalculateCost(*id_2, 0);
+			n = (int)(flows[all_nodes[i]][*id_2] / delta);
 			f1 = CalculateCost(parm, *id_2, 0);
 			for (int i = 1; i < n; i++) {
 				flow = delta * i;
-				// f2 = network.get_node(*id_1).CalculateCost(*id_2, flow);
 				f2 = CalculateCost(parm, *id_2, flow);
 				obj += (f1 + f2) * delta;
 				f1 = f2;
@@ -251,20 +256,23 @@ void FrankWolfe(Network& network, const string& criteria) {
 	}
 	else if (criteria == "obj") { // 需要多方面权衡（计算速度，结果准确性，目标函数值收敛性）
 		map<string, map<string, double>> flow, new_flow;
-		long double obj1, obj2;
+		long double obj, obj1, obj2;
 		// Network pre_network;
 		int i = 0;
+		bool state = true;
 
 		StatusMessageB("Initialization");
 		Initialization(network);           // 初始化
 		StatusMessageA();
 
 		Update(network); // 更新花费
-		obj2 = CalculateObj(network);
+		obj = CalculateObj(network);
+		MPI_Reduce(&obj, &obj2, 1, MPI_LONG_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 		do {
 			StatusIter(++i);
-			obj1 = obj2;
+			if (myid == 0)
+				obj1 = obj2;
 
 			StatusMessageB("Network Loading");
 			NetworkLoading(network);        // 重新分配并记录
@@ -272,9 +280,17 @@ void FrankWolfe(Network& network, const string& criteria) {
 			StatusMessageB("Update");
 			Update(network);                // 更新花费
 
-			obj2 = CalculateObj(network);
-			StatusMessageA("delta = " + to_string((obj1 - obj2) / obj1));
+			obj = CalculateObj(network);
+			MPI_Reduce(&obj, &obj2, 1, MPI_LONG_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-		} while (!IsConverge(obj1, obj2) || i < 10); // 收敛判断
+			if (myid == 0) {
+				StatusMessageA("delta = " + to_string((obj1 - obj2) / obj1));
+
+				if (IsConverge(obj1, obj2))
+					state = false;
+			}
+
+			MPI_Bcast(&state, 1, MPI_C_BOOL, 0, MPI_COMM_WORLD);
+		} while (state); // 收敛判断
 	}
 }

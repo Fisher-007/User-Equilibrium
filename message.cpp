@@ -1,11 +1,11 @@
 /*****************************************************************************
-*  @file     message.cpp                                                     *
+*  @file     message.cpp                                                       *
 *  @brief    信息处理类                                                      *
 *  @details  用于打印程序运行过程中需要展示的信息，包括警告和报错            *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
-*  @version  3.0                                                             *
-*  @date     2022/08/18                                                      *
+*  @version  2.0                                                             *
+*  @date     2022/07/30                                                      *
 *                                                                            *
 *----------------------------------------------------------------------------*
 *  Change History :                                                          *
@@ -19,8 +19,6 @@
 *----------------------------------------------------------------------------*
 *  2022/07/30 | 2.0       | Dong Yu        | Code optimization               *
 *----------------------------------------------------------------------------*
-*  2022/08/18 | 3.0       | Dong Yu        | Modified for MPI                *
-*----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
 #include "message.h"
@@ -28,31 +26,26 @@
 
 void StatusMessage(const string& message) {
 	// 后续在参数与格式方面可以继续拓展
-	if (myid == 0)
-		cout << message << endl;
+	cout << message << endl;
 }
 
 
 void StatusIter(const int& num, const int& len, const string& fill) {
 	// cout << "iter = " << setfill(fill) << setw(len) << num << ": ";
-	if (myid == 0)
-		cout << "iter = " << num << ": ";
+	cout << "iter = " << num << ": ";
 }
 
 
 void StatusMessageB(const string& message) {
-	if (myid == 0)
-		cout << message << "...";
+	cout << message << "...";
 }
 
 
 void StatusMessageA(const string& message) {
-	if (myid == 0) {
-		if (message == "")
-			cout << "Succeed!" << endl;
-		else
-			cout << message << endl;
-	}
+	if (message == "")
+		cout << "Succeed!" << endl;
+	else
+		cout << message << endl;
 }
 
 

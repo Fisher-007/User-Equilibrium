@@ -1,7 +1,7 @@
 /*****************************************************************************
-*  @file     message.h                                                       *
-*  @brief    信息处理类                                                      *
-*  @details  用于打印程序运行过程中需要展示的信息，包括警告和报错            *
+*  @file     read_file.h                                                     *
+*  @brief    文件读取类                                                      *
+*  @details  用于读取路网信息、路阻信息和 OD 数据                            *
 *  @author   Dong Yu                                                         *
 *  @email    213191838@seu.edu.cn                                            *
 *  @version  2.0                                                             *
@@ -11,38 +11,45 @@
 *  Change History :                                                          *
 *  <Date>     | <Version> | <Author>       | <Description>                   *
 *----------------------------------------------------------------------------*
-*  2022/07/23 | 1.0       | Dong Yu        | Create File                     *
+*  2022/07/22 | 1.0       | Dong Yu        | Create File                     *
 *----------------------------------------------------------------------------*
 *  2022/07/23 | 1.1       | Dong Yu        | Update Comment                  *
-*----------------------------------------------------------------------------*
-*  2022/07/25 | 1.2       | Dong Yu        | Add iter message print          *
 *----------------------------------------------------------------------------*
 *  2022/07/30 | 2.0       | Dong Yu        | Code optimization               *
 *----------------------------------------------------------------------------*
 *                                                                            *
 *****************************************************************************/
 #pragma once
-#ifndef MESSAGE_H
-#define MESSAGE_H
+#ifndef READFILE_H
+#define READFILE_H
 
 
-#include <iostream>
+#include <set>
 #include <string>
-#include <iomanip>
+#include <map>
 using namespace std;
 
-// 打印一般文字信息
-void StatusMessage(const string& message);
-// 打印一般文字信息
-void StatusIter(const int& num, const int& len = 3, const string& fill = "0");
-// 打印事件完成前信息，文字末尾加...
-void StatusMessageB(const string& message);
-// 打印事件完成后信息，无特殊需要默认为Succeed！
-void StatusMessageA(const string& message = "");
-// 打印警告信息
-void Warning(const string& message);
-// 打印Error信息并退出
-void ExitMessage(const string& message);
 
+class ReadFile {
+
+private:
+	string network_file; // 网络文件地址
+	string od_file;      // OD文件地址
+	set<string> all_nodes;                                       // 储存网络中所有点节点
+	map<string, set<string>> next_nodes;                         // 储存每一个节点的相邻节点
+	map<string, map<string, double>> od_matrix;                  // 储存OD数据
+	map<string, map<string, map<string, double>>> cost_parm;     // 储存每一个link的相关参数
+
+public:
+	ReadFile(const string& network, const string& od);
+	// 通过metadata检查读取的数据结果有无问题
+	void CheckData(const int& zones, const int& nodes, const int& links, const int& first_thru_node, const double& total_flow);
+	// 将line中信息转化为网络数据并进行储存
+	void set_network(const string& line);
+	set<string> get_all_nodes();
+	map<string, set<string>> get_next_nodes();
+	map<string, map<string, double>> get_od_matrix();
+	map<string, map<string, map<string, double>>> get_cost_parm();
+};
 
 #endif
