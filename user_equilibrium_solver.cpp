@@ -194,30 +194,48 @@ bool IsConverge(const long double& obj1, const long double& obj2) {
 * @param delta 积分步长
 * @return 目标函数值
 */
-long double CalculateObj(const Network& network, double delta = 0.1) {
+//long double CalculateObj(const Network& network, double delta = 1) {
+//	map<string, map<string, double>> parm;
+//	set<string> next, all_nodes = network.get_all_nodes();
+//	map<string, map<string, double>> flows = network.get_flow();
+//	long double obj = 0;
+//	double flow, f1, f2;
+//	int n;
+//	for (set<string>::iterator id_1 = all_nodes.begin(); id_1 != all_nodes.end(); id_1++) {
+//		parm = network.get_node(*id_1).get_cost_parm();
+//		next = network.get_node(*id_1).get_next();
+//		for (set<string>::iterator id_2 = next.begin(); id_2 != next.end(); id_2++) {
+//			n = (int)(flows[*id_1][*id_2] / delta);
+//			// f1 = network.get_node(*id_1).CalculateCost(*id_2, 0);
+//			f1 = CalculateCost(parm, *id_2, 0);
+//			for (int i = 1; i < n; i++) {
+//				flow = delta * i;
+//				// f2 = network.get_node(*id_1).CalculateCost(*id_2, flow);
+//				f2 = CalculateCost(parm, *id_2, flow);
+//				obj += (f1 + f2) * delta;
+//				f1 = f2;
+//			}
+//		}
+//	}
+//	return obj / 2;
+//}
+long double CalculateObj(const Network& network) {
+	long double obj = 0.0;
+	double link_integral = 0.0;
 	map<string, map<string, double>> parm;
-	set<string> next, all_nodes = network.get_all_nodes();
-	map<string, map<string, double>> flows = network.get_flow();
-	long double obj = 0;
-	double flow, f1, f2;
-	int n;
-	for (set<string>::iterator id_1 = all_nodes.begin(); id_1 != all_nodes.end(); id_1++) {
-		parm = network.get_node(*id_1).get_cost_parm();
-		next = network.get_node(*id_1).get_next();
-		for (set<string>::iterator id_2 = next.begin(); id_2 != next.end(); id_2++) {
-			n = (int)(flows[*id_1][*id_2] / delta);
-			// f1 = network.get_node(*id_1).CalculateCost(*id_2, 0);
-			f1 = CalculateCost(parm, *id_2, 0);
-			for (int i = 1; i < n; i++) {
-				flow = delta * i;
-				// f2 = network.get_node(*id_1).CalculateCost(*id_2, flow);
-				f2 = CalculateCost(parm, *id_2, flow);
-				obj += (f1 + f2) * delta;
-				f1 = f2;
-			}
+	map<string, map<string, double>> flow = network.get_flow();
+
+	for (auto i : flow) {
+		parm = network.get_node(i.first).get_cost_parm();
+		for (auto j : i.second) {
+			link_integral = parm.at(j.first).at("t0") * flow.at(i.first).at(j.first)
+				+ parm.at(j.first).at("t0") * ALPHA / pow(parm.at(j.first).at("c"), BETA)
+				* pow(flow.at(i.first).at(j.first), 5) / 5;
+			obj += link_integral;
 		}
 	}
-	return obj / 2;
+
+	return obj;
 }
 
 

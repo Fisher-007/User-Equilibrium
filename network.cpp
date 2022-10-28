@@ -99,8 +99,8 @@ void Network::Init(const string& network, const string& od, const string& _crite
             //this->nodes[id_1].UpdateNext(id_2, stod(c), stod(b), stod(a));
             getline(sin, t0, ',');
             getline(sin, c, ',');
-            this->nodes[id_1].UpdateNext(id_2, stod(t0), stod(c) * 2000);
-            //this->nodes[id_1].UpdateNext(id_2, stod(t0), stod(c)); // cost Òç³ö£¡£¡£¡
+            //this->nodes[id_1].UpdateNext(id_2, stod(t0), stod(c) * 2000);
+            this->nodes[id_1].UpdateNext(id_2, stod(t0), stod(c)); // cost Òç³ö£¡£¡£¡
         }
 
         ifstream od_data(od);

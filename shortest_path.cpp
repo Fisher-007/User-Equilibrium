@@ -43,7 +43,7 @@ map<string, vector<string>> GetShortestPath(const string& origin, const Network&
 	string current_node;
 	double new_cost, min_cost;
 
-	// 初始化所有节点
+	// 初始化所有节点（不必要计算所有节点的最短路树，可优化）
 	for (set<string>::iterator id = nodes.begin(); id != nodes.end(); id++) {
 		state[*id] = 1;
 		total_cost[*id] = INT_MAX;
